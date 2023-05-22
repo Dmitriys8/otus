@@ -7,3 +7,7 @@ services:
     ports:
       - 8123:8123
       - 9000:9000
+    volumes:
+    - type: bind
+      target: /var/lib/clickhouse/
+      source: ./click-data
