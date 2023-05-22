@@ -1,0 +1,36 @@
+version: "3"
+
+services:
+  couchbase-master:
+    image: arungupta/couchbase
+    deploy:
+      replicas: 1
+    ports:
+      - 8091:8091
+      - 8092:8092
+      - 8093:8093
+      - 8094:8094
+      - 11210:11210
+
+
+  couchbase-replica-1:
+    image: arungupta/couchbase
+    deploy:
+      replicas: 1
+    ports:
+      - 9091:8091
+      - 9092:8092
+      - 9093:8093
+      - 9094:8094
+      - 12210:11210    
+
+  couchbase-replica-3:
+    image: arungupta/couchbase
+    deploy:
+      replicas: 1
+    ports:
+      - 10091:8091
+      - 10092:8092
+      - 10093:8093
+      - 10094:8094
+      - 13210:11210     
