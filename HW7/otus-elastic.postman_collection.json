@@ -1,0 +1,225 @@
+{
+	"info": {
+		"_postman_id": "ded4ab14-797a-4f94-87b0-3562e0319042",
+		"name": "otus-elastic",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "10676522"
+	},
+	"item": [
+		{
+			"name": "Create index with mapping and settings",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "W04ARe6b4wkzKU1hyehk",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "elastic",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"mappings\":{\n        \"properties\": {\n            \"phrase\": { \"type\": \"text\"}\n        }\n    },\n    \"settings\": {\n        \"analysis\": {\n            \"filter\": {\n                \"russian_stop\": {\n                    \"type\":       \"stop\",\n                    \"stopwords\":  \"_russian_\" \n                },\n                \"russian_stemmer\": {\n                    \"type\":       \"stemmer\",\n                    \"language\":   \"russian\"\n                }\n            },\n            \"analyzer\": {\n                \"my_russian\": {\n                    \"tokenizer\":  \"standard\",\n                    \"filter\": [\n                        \"lowercase\",\n                        \"russian_stop\",\n                        \"russian_stemmer\"\n                    ]\n                }\n            }\n        }\n    } \n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:9200/fuzzy-search",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"fuzzy-search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get mapping",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "W04ARe6b4wkzKU1hyehk",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "elastic",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:9200/fuzzy-search",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"fuzzy-search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "insert docs",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "W04ARe6b4wkzKU1hyehk",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "elastic",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"create\":{\"_index\":\"fuzzy-search\",\"_id\":\"1\"}}\n{\"phrase\":\"моя мама мыла посуду а кот жевал сосиски\"}\n{\"create\":{\"_index\":\"fuzzy-search\",\"_id\":\"2\"}}\n{\"phrase\":\"рама была отмыта и вылизана котом\"}\n{\"create\":{\"_index\":\"fuzzy-search\",\"_id\":\"3\"}}\n{\"phrase\":\"мама мыла раму\"}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:9200/fuzzy-search/_bulk",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"fuzzy-search",
+						"_bulk"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "W04ARe6b4wkzKU1hyehk",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "elastic",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\":{\n        \"match_all\":{}\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:9200/fuzzy-search/_search",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"fuzzy-search",
+						"_search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "fuzzy request",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "W04ARe6b4wkzKU1hyehk",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "elastic",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\":{\n        \"match\":{\n            \"phrase\":{\n                \"query\":\"мама ела сосиски\",\n                \"fuzziness\":\"auto\"\n            }\n        }\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:9200/fuzzy-search/_search",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9200",
+					"path": [
+						"fuzzy-search",
+						"_search"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

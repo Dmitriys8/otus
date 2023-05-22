@@ -275,11 +275,116 @@ docker-compose
 
 ## Поисковые запросы
 
-Прежде чем начать поисковые запросы загрузим данные
+Cоздаем индекс fuzzy-search с маппингом и настройками для поиска на русском языке
 
-    POST https://localhost:9200/otus-shop/_bulk
+    PUT https://localhost:9200/fuzzy-search
 
-    источник данных - bulk-39289-bb0059.json
+    {
+        "mappings":{
+            "properties": {
+                "phrase": { "type": "text"}
+            }
+        },
+        "settings": {
+            "analysis": {
+                "filter": {
+                    "russian_stop": {
+                        "type":       "stop",
+                        "stopwords":  "_russian_" 
+                    },
+                    "russian_stemmer": {
+                        "type":       "stemmer",
+                        "language":   "russian"
+                    }
+                },
+                "analyzer": {
+                    "my_russian": {
+                        "tokenizer":  "standard",
+                        "filter": [
+                            "lowercase",
+                            "russian_stop",
+                            "russian_stemmer"
+                        ]
+                    }
+                }
+            }
+        } 
+    }
+
+Вставляем документы 
+
+    POST https://localhost:9200/fuzzy-search/_bulk
+
+    {"create":{"_index":"fuzzy-search","_id":"1"}}
+    {"phrase":"моя мама мыла посуду а кот жевал сосиски"}
+    {"create":{"_index":"fuzzy-search","_id":"2"}}
+    {"phrase":"рама была отмыта и вылизана котом"}
+    {"create":{"_index":"fuzzy-search","_id":"3"}}
+    {"phrase":"мама мыла раму"}
+
+Делаем запрос нечеткого поиска
+
+    GET https://localhost:9200/fuzzy-search/_search
+
+    {
+        "query":{
+            "match":{
+                "phrase":{
+                    "query":"мама ела сосиски",
+                    "fuzziness":"auto"
+                }
+            }
+        }
+    }
+
+Получаем ответ
+
+    {
+        "took": 10,
+        "timed_out": false,
+        "_shards": {
+            "total": 1,
+            "successful": 1,
+            "skipped": 0,
+            "failed": 0
+        },
+        "hits": {
+            "total": {
+                "value": 3,
+                "relation": "eq"
+            },
+            "max_score": 1.241674,
+            "hits": [
+                {
+                    "_index": "fuzzy-search",
+                    "_id": "1",
+                    "_score": 1.241674,
+                    "_source": {
+                        "phrase": "моя мама мыла посуду а кот жевал сосиски"
+                    }
+                },
+                {
+                    "_index": "fuzzy-search",
+                    "_id": "3",
+                    "_score": 0.5820575,
+                    "_source": {
+                        "phrase": "мама мыла раму"
+                    }
+                },
+                {
+                    "_index": "fuzzy-search",
+                    "_id": "2",
+                    "_score": 0.34421936,
+                    "_source": {
+                        "phrase": "рама была отмыта и вылизана котом"
+                    }
+                }
+            ]
+        }
+    }
 
 
-
+Найдены все документы
+- У документа с фразой "моя мама мыла посуду а кот жевал сосиски" самый большой скор, потому что есть слова "мама" и "сосиски" в неизменном виде, относительно поискового запроса.
+- На втором месте документ с фразой "мама мыла раму", потому что есть неизменное слово "мама"
+- На третьем месте "рама была отмыта и вылизана котом", потому что есть слово "рама", которое очень близко к слову "мама", поэтому эластик выдает его в поисковой выдаче
